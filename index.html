@@ -54,7 +54,18 @@
   .manufacture-badge { display: none; margin-top: 8px; padding: 8px 12px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; font-size: 13px; color: #15803d; font-weight: 500; }
   .manufacture-badge.show { display: block; }
 
-  /* Warehouse Radio */
+  /* Searchable Dropdown */
+  .search-dropdown { position: relative; }
+  .search-input { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 15px; color: #1a1a1a; background: white; outline: none; transition: border-color 0.15s; box-sizing: border-box; }
+  .search-input:focus { border-color: #1e3a5f; box-shadow: 0 0 0 3px rgba(30,58,95,0.1); }
+  .search-list { display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #d1d5db; border-radius: 8px; max-height: 220px; overflow-y: auto; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 2px; }
+  .search-list.show { display: block; }
+  .search-item { padding: 10px 12px; font-size: 14px; cursor: pointer; border-bottom: 1px solid #f3f4f6; }
+  .search-item:last-child { border-bottom: none; }
+  .search-item:hover, .search-item.active { background: #e8f0fe; color: #1e3a5f; font-weight: 500; }
+  .search-item mark { background: #fef08a; border-radius: 2px; font-weight: 600; }
+  .search-empty { padding: 10px 12px; font-size: 13px; color: #9ca3af; text-align: center; }
+  .search-loading { padding: 10px 12px; font-size: 13px; color: #6b7280; text-align: center; }
   .wh-options { display: flex; gap: 10px; margin-bottom: 12px; }
   .wh-opt { position: relative; flex: 1; }
   .wh-opt input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
@@ -143,27 +154,14 @@
 
   <div class="field">
     <label>Nama PIC</label>
-    <select id="nama">
-      <option value="">— Pilih PIC —</option>
-      <option>Gerry Lapian</option>
-      <option>Ridwan Mustari</option>
-      <option>Muhammad Reza Djaelani</option>
-      <option>Maliki</option>
-      <option>Huda Rizqi Alfarisi</option>
-      <option>Haikal Basri</option>
-      <option>Ponnaisila Ilyas</option>
-      <option>Halik Usman</option>
-      <option>Muhammad Andika</option>
-      <option>Brayen Glend Pusung</option>
-      <option>Yusran Maulana Ratuela</option>
-      <option>Muh.Ismet Alfarabi</option>
-      <option>Riyo D. Afrilian</option>
-      <option>Gerald Marlev Marwa</option>
-      <option>Muhammad Ali Usman</option>
-      <option>Hisbullah</option>
-      <option>Ismeit AK. Uno</option>
-      <option>Others</option>
-    </select>
+    <div class="search-dropdown" id="sd-pic">
+      <input type="text" class="search-input" id="pic-search" placeholder="Ketik nama PIC..." autocomplete="off"
+        oninput="filterDropdown('pic')" onfocus="showDropdown('pic')" />
+      <div class="search-list" id="pic-list">
+        <div class="search-loading">⏳ Memuat...</div>
+      </div>
+    </div>
+    <input type="hidden" id="nama" />
   </div>
 
   <div class="field">
@@ -223,7 +221,14 @@
 
   <div class="field">
     <label>Nama Penerima</label>
-    <input type="text" id="nama-penerima" placeholder="Ketik nama penerima..." />
+    <div class="search-dropdown" id="sd-penerima">
+      <input type="text" class="search-input" id="penerima-search" placeholder="Ketik nama penerima..." autocomplete="off"
+        oninput="filterDropdown('penerima')" onfocus="showDropdown('penerima')" />
+      <div class="search-list" id="penerima-list">
+        <div class="search-loading">⏳ Memuat...</div>
+      </div>
+    </div>
+    <input type="hidden" id="nama-penerima" />
   </div>
 
   <div class="field">
@@ -308,7 +313,91 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 1000);
 
-// ── Prefix Radio ──
+// ── Searchable Dropdown ──
+let settingData = { pics: [], penerimas: [] };
+
+async function fetchSetting() {
+  try {
+    const res  = await fetch(`${APPS_SCRIPT_URL}?action=getSetting`);
+    const json = await res.json();
+    settingData.pics      = json.pics      || [];
+    settingData.penerimas = json.penerimas || [];
+    renderDropdown('pic',      settingData.pics);
+    renderDropdown('penerima', settingData.penerimas);
+  } catch(e) { console.warn('Setting gagal load:', e); }
+}
+fetchSetting();
+
+function renderDropdown(type, items) {
+  const list = document.getElementById(type + '-list');
+  list.innerHTML = '';
+  if (items.length === 0) {
+    list.innerHTML = '<div class="search-empty">Tidak ada data</div>';
+    return;
+  }
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'search-item';
+    div.textContent = item;
+    div.onclick = () => selectItem(type, item);
+    list.appendChild(div);
+  });
+}
+
+function filterDropdown(type) {
+  const keyword = document.getElementById(type + '-search').value.trim().toLowerCase();
+  const items   = type === 'pic' ? settingData.pics : settingData.penerimas;
+  const list    = document.getElementById(type + '-list');
+
+  list.classList.add('show');
+  list.innerHTML = '';
+
+  const filtered = keyword
+    ? items.filter(i => i.toLowerCase().includes(keyword))
+    : items;
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="search-empty">Tidak ditemukan</div>';
+    return;
+  }
+
+  filtered.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'search-item';
+    // Highlight keyword
+    if (keyword) {
+      const regex = new RegExp(`(${keyword})`, 'gi');
+      div.innerHTML = item.replace(regex, '<mark>$1</mark>');
+    } else {
+      div.textContent = item;
+    }
+    div.onclick = () => selectItem(type, item);
+    list.appendChild(div);
+  });
+}
+
+function showDropdown(type) {
+  const list    = document.getElementById(type + '-list');
+  const keyword = document.getElementById(type + '-search').value.trim();
+  if (!keyword) renderDropdown(type, type === 'pic' ? settingData.pics : settingData.penerimas);
+  list.classList.add('show');
+}
+
+function selectItem(type, value) {
+  document.getElementById(type + '-search').value = value;
+  document.getElementById(type === 'pic' ? 'nama' : 'nama-penerima').value = value;
+  document.getElementById(type + '-list').classList.remove('show');
+}
+
+// Tutup dropdown kalau klik di luar
+document.addEventListener('click', e => {
+  ['pic', 'penerima'].forEach(type => {
+    const sd = document.getElementById('sd-' + type);
+    if (sd && !sd.contains(e.target)) {
+      document.getElementById(type + '-list').classList.remove('show');
+    }
+  });
+});
 document.querySelectorAll('input[name="prefix"]').forEach(radio => {
   radio.addEventListener('change', () => onPrefixChange(radio.value, radio.id.replace('p-','')));
 });
@@ -794,7 +883,10 @@ async function doSubmit() {
 }
 
 function resetForm() {
+  document.getElementById('pic-search').value = '';
+  document.getElementById('penerima-search').value = '';
   document.getElementById('nama').value = '';
+  document.getElementById('nama-penerima').value = '';
   document.querySelectorAll('input[name="prefix"]').forEach(r => r.checked = false);
   document.getElementById('unit-input-area').style.display = 'none';
   document.getElementById('unit-select').innerHTML = '<option value="">— Pilih No Unit —</option>';
@@ -803,7 +895,6 @@ function resetForm() {
   document.getElementById('no-unit').value = '';
   document.getElementById('manufacture').value = '';
   document.getElementById('manufacture-badge').classList.remove('show');
-  document.getElementById('nama-penerima').value = '';
   document.querySelectorAll('input[name="warehouse"]').forEach(r => r.checked = false);
   document.getElementById('sub-krishna').classList.remove('show');
   document.getElementById('sub-yudistira').classList.remove('show');
