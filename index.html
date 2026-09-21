@@ -459,6 +459,10 @@ function selectItem(type, value) {
       buWrap.style.display = 'block';
       buLabel.textContent  = valUpper === 'PEMINJAMAN'   ? 'Dipinjam oleh BU' :
                              valUpper === 'PENGEMBALIAN' ? 'Pengembalian ke BU' : 'Backcharge ke BU';
+      document.getElementById('bu-search').placeholder = 'Ketik nama BU...';
+      // Reset filter bu ke default (bus)
+      document.getElementById('bu-search').oninput  = () => filterDropdown('bu');
+      document.getElementById('bu-search').onfocus  = () => showDropdown('bu');
       // Render kolom D
       renderDropdown('bu', settingData.bus);
       document.getElementById('manufacture').value = '';
@@ -467,6 +471,8 @@ function selectItem(type, value) {
       // Tampilkan dropdown SLOC (kolom E)
       buWrap.style.display = 'block';
       buLabel.textContent  = 'Transfer ke SLOC';
+      // Ganti placeholder
+      document.getElementById('bu-search').placeholder = 'Ketik tujuan SLOC...';
       // Render kolom E (slocs) ke dalam bu-list
       const buListEl = document.getElementById('bu-list');
       buListEl.innerHTML = '';
@@ -479,11 +485,12 @@ function selectItem(type, value) {
       });
       // Override filter bu untuk pakai slocs
       document.getElementById('bu-search').oninput = () => {
-        const kw = document.getElementById('bu-search').value.trim().toLowerCase();
+        const kw   = document.getElementById('bu-search').value.trim().toLowerCase();
         const list = document.getElementById('bu-list');
         list.classList.add('show');
         list.innerHTML = '';
         const filtered = kw ? settingData.slocs.filter(s => s.toLowerCase().includes(kw)) : settingData.slocs;
+        if (filtered.length === 0) { list.innerHTML = '<div class="search-empty">Tidak ditemukan</div>'; return; }
         filtered.forEach(s => {
           const div = document.createElement('div');
           div.className = 'search-item';
@@ -494,6 +501,20 @@ function selectItem(type, value) {
           div.onclick = () => selectItem('bu', s);
           list.appendChild(div);
         });
+      };
+      document.getElementById('bu-search').onfocus = () => {
+        const list = document.getElementById('bu-list');
+        if (!document.getElementById('bu-search').value.trim()) {
+          list.innerHTML = '';
+          settingData.slocs.forEach(s => {
+            const div = document.createElement('div');
+            div.className = 'search-item';
+            div.textContent = s;
+            div.onclick = () => selectItem('bu', s);
+            list.appendChild(div);
+          });
+        }
+        list.classList.add('show');
       };
       document.getElementById('manufacture').value = '';
 
@@ -513,8 +534,10 @@ function selectItem(type, value) {
     const mfBadge = document.getElementById('manufacture-badge');
     mfBadge.textContent = '🏢 ' + value;
     mfBadge.classList.add('show');
-    // Reset filter bu ke default (bus) setelah dipilih
-    document.getElementById('bu-search').oninput = () => filterDropdown('bu');
+    // Reset filter bu ke default setelah dipilih
+    document.getElementById('bu-search').oninput  = () => filterDropdown('bu');
+    document.getElementById('bu-search').onfocus  = () => showDropdown('bu');
+    document.getElementById('bu-search').placeholder = 'Ketik nama BU...';
   }
 }
 
