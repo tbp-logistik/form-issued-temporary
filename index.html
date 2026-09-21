@@ -153,6 +153,34 @@
   </div>
 
   <div class="field">
+    <label>Warehouse</label>
+    <div class="wh-options">
+      <div class="wh-opt">
+        <input type="radio" name="warehouse" id="wh-krishna" value="Gudang Krishna" onchange="toggleWH('krishna')">
+        <label for="wh-krishna">Gudang Krishna</label>
+      </div>
+      <div class="wh-opt">
+        <input type="radio" name="warehouse" id="wh-yudistira" value="Gudang Yudistira" onchange="toggleWH('yudistira')">
+        <label for="wh-yudistira">Gudang Yudistira</label>
+      </div>
+    </div>
+    <div class="wh-sub" id="sub-krishna">
+      <label>Sbin Gudang Krishna</label>
+      <p class="unit-loading" id="loading-krishna">⏳ Memuat Sbin...</p>
+      <select id="loc-krishna" style="display:none;">
+        <option value="">— Pilih Sbin —</option>
+      </select>
+    </div>
+    <div class="wh-sub" id="sub-yudistira">
+      <label>Sbin Gudang Yudistira</label>
+      <p class="unit-loading" id="loading-yudistira">⏳ Memuat Sbin...</p>
+      <select id="loc-yudistira" style="display:none;">
+        <option value="">— Pilih Sbin —</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
     <label>Nama PIC</label>
     <div class="search-dropdown" id="sd-pic">
       <input type="text" class="search-input" id="pic-search" placeholder="Ketik nama PIC..." autocomplete="off"
@@ -195,25 +223,53 @@
       <div class="prefix-opt"><input type="radio" name="prefix" id="p-BC" value="BC"><label for="p-BC">BC</label></div>
       <div class="prefix-opt"><input type="radio" name="prefix" id="p-WS" value="WS"><label for="p-WS">WS</label></div>
       <div class="prefix-opt"><input type="radio" name="prefix" id="p-ML" value="ML"><label for="p-ML">ML</label></div>
-      <div class="prefix-opt" style="grid-column: span 4;"><input type="radio" name="prefix" id="p-DEPT" value="DEPT. OTHERS"><label for="p-DEPT" style="font-size:12px;">Departement Others</label></div>
+      <div class="prefix-opt" style="grid-column: span 4;"><input type="radio" name="prefix" id="p-DEPT" value="DEPT. OTHERS" onchange="onDeptOthersSelected()"><label for="p-DEPT" style="font-size:12px;">Departement Others</label></div>
     </div>
 
     <div class="unit-input-area" id="unit-input-area">
       <p class="unit-loading" id="unit-loading">⏳ Memuat daftar unit...</p>
-
-      <div id="unit-dropdown-wrap" style="display:none;">
-        <select id="unit-select" onchange="onUnitSelect()">
-          <option value="">— Pilih No Unit —</option>
-        </select>
+      <div id="unit-search-wrap" style="display:none;">
+        <div class="search-dropdown" id="sd-unit">
+          <input type="text" class="search-input" id="unit-search" placeholder="Ketik nomor unit..." autocomplete="off"
+            oninput="filterUnitDropdown()" onfocus="showUnitDropdown()" />
+          <div class="search-list" id="unit-list"></div>
+        </div>
         <div class="manufacture-badge" id="manufacture-badge"></div>
         <span class="unit-manual-toggle" onclick="toggleManualUnit()">+ Ketik manual (tidak ada di list)</span>
       </div>
-
       <div class="unit-manual-wrap" id="unit-manual-wrap">
         <span class="unit-prefix-badge" id="unit-prefix-badge">--</span>
         <input type="text" id="no-unit-manual" placeholder="Ketik nomor unit..." />
       </div>
     </div>
+
+    <!-- Departement Others -->
+    <div id="dept-wrap" style="display:none; margin-top:8px;">
+      <label style="margin-bottom:4px;">Pilih Departemen</label>
+      <div class="search-dropdown" id="sd-dept">
+        <input type="text" class="search-input" id="dept-search" placeholder="Ketik nama departemen..." autocomplete="off"
+          oninput="filterDropdown('dept')" onfocus="showDropdown('dept')" />
+        <div class="search-list" id="dept-list">
+          <div class="search-loading">⏳ Memuat...</div>
+        </div>
+      </div>
+      <!-- Badge manufacture dari dept -->
+      <div class="manufacture-badge" id="dept-manufacture-badge" style="display:none; margin-top:8px;"></div>
+      <!-- Sub-field BU untuk PEMINJAMAN/PENGEMBALIAN/BACKCHARGE -->
+      <div id="bu-wrap" style="display:none; margin-top:8px;">
+        <label id="bu-label" style="margin-bottom:4px;">Dipinjam oleh BU</label>
+        <div class="search-dropdown" id="sd-bu">
+          <input type="text" class="search-input" id="bu-search" placeholder="Ketik nama BU..." autocomplete="off"
+            oninput="filterDropdown('bu')" onfocus="showDropdown('bu')" />
+          <div class="search-list" id="bu-list">
+            <div class="search-loading">⏳ Memuat...</div>
+          </div>
+        </div>
+        <input type="hidden" id="bu-value" />
+      </div>
+    </div>
+    <!-- Hidden list untuk SLOC (dirender ke bu-list saat TRANSFER S-SLOC dipilih) -->
+    <div style="display:none;"><div id="sloc-list"></div></div>
 
     <input type="hidden" id="no-unit" />
     <input type="hidden" id="manufacture" />
@@ -231,33 +287,6 @@
     <input type="hidden" id="nama-penerima" />
   </div>
 
-  <div class="field">
-    <label>Warehouse</label>
-    <div class="wh-options">
-      <div class="wh-opt">
-        <input type="radio" name="warehouse" id="wh-krishna" value="Gudang Krishna" onchange="toggleWH('krishna')">
-        <label for="wh-krishna">Gudang Krishna</label>
-      </div>
-      <div class="wh-opt">
-        <input type="radio" name="warehouse" id="wh-yudistira" value="Gudang Yudistira" onchange="toggleWH('yudistira')">
-        <label for="wh-yudistira">Gudang Yudistira</label>
-      </div>
-    </div>
-    <div class="wh-sub" id="sub-krishna">
-      <label>Sbin Gudang Krishna</label>
-      <p class="unit-loading" id="loading-krishna">⏳ Memuat Sbin...</p>
-      <select id="loc-krishna" style="display:none;">
-        <option value="">— Pilih Sbin —</option>
-      </select>
-    </div>
-    <div class="wh-sub" id="sub-yudistira">
-      <label>Sbin Gudang Yudistira</label>
-      <p class="unit-loading" id="loading-yudistira">⏳ Memuat Sbin...</p>
-      <select id="loc-yudistira" style="display:none;">
-        <option value="">— Pilih Sbin —</option>
-      </select>
-    </div>
-  </div>
 </div>
 
 <div id="items-container"></div>
@@ -314,7 +343,7 @@ updateClock();
 setInterval(updateClock, 1000);
 
 // ── Searchable Dropdown ──
-let settingData = { pics: [], penerimas: [] };
+let settingData = { pics: [], penerimas: [], depts: [], bus: [], slocs: [] };
 
 async function fetchSetting() {
   try {
@@ -322,17 +351,33 @@ async function fetchSetting() {
     const json = await res.json();
     settingData.pics      = json.pics      || [];
     settingData.penerimas = json.penerimas || [];
+    settingData.depts     = json.depts     || [];
+    settingData.bus       = json.bus       || [];
+    settingData.slocs     = json.slocs     || [];
     renderDropdown('pic',      settingData.pics);
     renderDropdown('penerima', settingData.penerimas);
+    renderDropdown('dept',     settingData.depts);
+    renderDropdown('bu',       settingData.bus);
+    renderDropdown('sloc',     settingData.slocs);
   } catch(e) { console.warn('Setting gagal load:', e); }
 }
 fetchSetting();
 
+function getSettingItems(type) {
+  if (type === 'pic')       return settingData.pics;
+  if (type === 'penerima')  return settingData.penerimas;
+  if (type === 'dept')      return settingData.depts;
+  if (type === 'bu')        return settingData.bus;
+  if (type === 'sloc')      return settingData.slocs;
+  return [];
+}
+
 function renderDropdown(type, items) {
-  const list = document.getElementById(type + '-list');
-  list.innerHTML = '';
+  const listEl = document.getElementById(type + '-list');
+  if (!listEl) return;
+  listEl.innerHTML = '';
   if (items.length === 0) {
-    list.innerHTML = '<div class="search-empty">Tidak ada data</div>';
+    listEl.innerHTML = '<div class="search-empty">Tidak ada data</div>';
     return;
   }
   items.forEach(item => {
@@ -340,61 +385,146 @@ function renderDropdown(type, items) {
     div.className = 'search-item';
     div.textContent = item;
     div.onclick = () => selectItem(type, item);
-    list.appendChild(div);
+    listEl.appendChild(div);
   });
 }
 
 function filterDropdown(type) {
   const keyword = document.getElementById(type + '-search').value.trim().toLowerCase();
-  const items   = type === 'pic' ? settingData.pics : settingData.penerimas;
-  const list    = document.getElementById(type + '-list');
+  const items   = getSettingItems(type);
+  const listEl  = document.getElementById(type + '-list');
+  listEl.classList.add('show');
+  listEl.innerHTML = '';
 
-  list.classList.add('show');
-  list.innerHTML = '';
-
-  const filtered = keyword
-    ? items.filter(i => i.toLowerCase().includes(keyword))
-    : items;
-
+  const filtered = keyword ? items.filter(i => i.toLowerCase().includes(keyword)) : items;
   if (filtered.length === 0) {
-    list.innerHTML = '<div class="search-empty">Tidak ditemukan</div>';
+    listEl.innerHTML = '<div class="search-empty">Tidak ditemukan</div>';
     return;
   }
-
   filtered.forEach(item => {
     const div = document.createElement('div');
     div.className = 'search-item';
-    // Highlight keyword
     if (keyword) {
-      const regex = new RegExp(`(${keyword})`, 'gi');
+      const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
       div.innerHTML = item.replace(regex, '<mark>$1</mark>');
     } else {
       div.textContent = item;
     }
     div.onclick = () => selectItem(type, item);
-    list.appendChild(div);
+    listEl.appendChild(div);
   });
 }
 
 function showDropdown(type) {
-  const list    = document.getElementById(type + '-list');
+  const listEl  = document.getElementById(type + '-list');
+  if (!listEl) return;
   const keyword = document.getElementById(type + '-search').value.trim();
-  if (!keyword) renderDropdown(type, type === 'pic' ? settingData.pics : settingData.penerimas);
-  list.classList.add('show');
+  if (!keyword) renderDropdown(type, getSettingItems(type));
+  listEl.classList.add('show');
 }
 
+// PEMINJAMAN/PENGEMBALIAN/BACKCHARGE → kolom D (bus)
+// TRANSFER S-SLOC → kolom E (slocs)
+const SPECIAL_BU   = ['PEMINJAMAN', 'PENGEMBALIAN', 'BACKCHARGE'];
+const SPECIAL_SLOC = ['TRANSFER S-SLOC'];
+
 function selectItem(type, value) {
-  document.getElementById(type + '-search').value = value;
-  document.getElementById(type === 'pic' ? 'nama' : 'nama-penerima').value = value;
-  document.getElementById(type + '-list').classList.remove('show');
+  const searchEl = document.getElementById(type + '-search');
+  const listEl   = document.getElementById(type + '-list');
+  if (searchEl) searchEl.value = value;
+  if (listEl)   listEl.classList.remove('show');
+
+  if (type === 'pic') {
+    document.getElementById('nama').value = value;
+
+  } else if (type === 'penerima') {
+    document.getElementById('nama-penerima').value = value;
+
+  } else if (type === 'dept') {
+    const valUpper  = value.toUpperCase();
+    const buWrap    = document.getElementById('bu-wrap');
+    const buLabel   = document.getElementById('bu-label');
+    const deptBadge = document.getElementById('dept-manufacture-badge');
+    const mfBadge   = document.getElementById('manufacture-badge');
+
+    // Reset sub-fields
+    buWrap.style.display = 'none';
+    document.getElementById('bu-search').value = '';
+    document.getElementById('bu-value').value  = '';
+    deptBadge.style.display = 'none';
+    mfBadge.classList.remove('show');
+
+    if (SPECIAL_BU.includes(valUpper)) {
+      // Tampilkan dropdown BU (kolom D)
+      buWrap.style.display = 'block';
+      buLabel.textContent  = valUpper === 'PEMINJAMAN'   ? 'Dipinjam oleh BU' :
+                             valUpper === 'PENGEMBALIAN' ? 'Pengembalian ke BU' : 'Backcharge ke BU';
+      // Render kolom D
+      renderDropdown('bu', settingData.bus);
+      document.getElementById('manufacture').value = '';
+
+    } else if (SPECIAL_SLOC.includes(valUpper)) {
+      // Tampilkan dropdown SLOC (kolom E)
+      buWrap.style.display = 'block';
+      buLabel.textContent  = 'Transfer ke SLOC';
+      // Render kolom E (slocs) ke dalam bu-list
+      const buListEl = document.getElementById('bu-list');
+      buListEl.innerHTML = '';
+      settingData.slocs.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'search-item';
+        div.textContent = s;
+        div.onclick = () => selectItem('bu', s);
+        buListEl.appendChild(div);
+      });
+      // Override filter bu untuk pakai slocs
+      document.getElementById('bu-search').oninput = () => {
+        const kw = document.getElementById('bu-search').value.trim().toLowerCase();
+        const list = document.getElementById('bu-list');
+        list.classList.add('show');
+        list.innerHTML = '';
+        const filtered = kw ? settingData.slocs.filter(s => s.toLowerCase().includes(kw)) : settingData.slocs;
+        filtered.forEach(s => {
+          const div = document.createElement('div');
+          div.className = 'search-item';
+          if (kw) {
+            const regex = new RegExp(`(${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            div.innerHTML = s.replace(regex, '<mark>$1</mark>');
+          } else { div.textContent = s; }
+          div.onclick = () => selectItem('bu', s);
+          list.appendChild(div);
+        });
+      };
+      document.getElementById('manufacture').value = '';
+
+    } else {
+      // Departemen biasa → Manufacture = nama dept
+      document.getElementById('manufacture').value = value;
+      deptBadge.textContent    = '🏢 ' + value;
+      deptBadge.style.display  = 'block';
+      mfBadge.classList.remove('show');
+    }
+    // No Unit = nama dept untuk Dept Others
+    document.getElementById('no-unit').value = value;
+
+  } else if (type === 'bu') {
+    document.getElementById('bu-value').value    = value;
+    document.getElementById('manufacture').value = value;
+    const mfBadge = document.getElementById('manufacture-badge');
+    mfBadge.textContent = '🏢 ' + value;
+    mfBadge.classList.add('show');
+    // Reset filter bu ke default (bus) setelah dipilih
+    document.getElementById('bu-search').oninput = () => filterDropdown('bu');
+  }
 }
 
 // Tutup dropdown kalau klik di luar
 document.addEventListener('click', e => {
-  ['pic', 'penerima'].forEach(type => {
+  ['pic', 'penerima', 'dept', 'bu', 'sloc', 'unit'].forEach(type => {
     const sd = document.getElementById('sd-' + type);
     if (sd && !sd.contains(e.target)) {
-      document.getElementById(type + '-list').classList.remove('show');
+      const list = document.getElementById(type + '-list');
+      if (list) list.classList.remove('show');
     }
   });
 });
@@ -406,27 +536,25 @@ async function onPrefixChange(classValue, displayLabel) {
   manualUnitMode = false;
   document.getElementById('unit-input-area').style.display = 'block';
   document.getElementById('unit-loading').style.display = 'block';
-  document.getElementById('unit-dropdown-wrap').style.display = 'none';
+  document.getElementById('unit-search-wrap').style.display = 'none';
   document.getElementById('unit-manual-wrap').classList.remove('show');
+  document.getElementById('dept-wrap').style.display = 'none';
   document.getElementById('unit-prefix-badge').textContent = displayLabel;
   document.getElementById('no-unit-manual').value = '';
   document.getElementById('no-unit').value = '';
   document.getElementById('manufacture').value = '';
   document.getElementById('manufacture-badge').classList.remove('show');
+  document.getElementById('unit-search').value = '';
 
   if (classValue === 'DEPT. OTHERS') {
     document.getElementById('unit-loading').style.display = 'none';
-    document.getElementById('unit-manual-wrap').classList.add('show');
-    document.getElementById('no-unit-manual').placeholder = 'Nama departemen...';
-    document.getElementById('no-unit-manual').oninput = () => {
-      const v = document.getElementById('no-unit-manual').value.trim();
-      document.getElementById('no-unit').value = v ? 'DEPT-' + v : '';
-    };
+    document.getElementById('dept-wrap').style.display = 'block';
+    document.getElementById('bu-wrap').style.display = 'none';
     return;
   }
 
   if (unitsCache[classValue]) {
-    renderUnitDropdown(classValue, displayLabel, unitsCache[classValue]);
+    renderUnitSearchable(classValue, displayLabel, unitsCache[classValue]);
     return;
   }
 
@@ -434,7 +562,7 @@ async function onPrefixChange(classValue, displayLabel) {
     const res  = await fetch(`${APPS_SCRIPT_URL}?action=getUnits&prefix=${encodeURIComponent(classValue)}`);
     const json = await res.json();
     unitsCache[classValue] = json.units || [];
-    renderUnitDropdown(classValue, displayLabel, unitsCache[classValue]);
+    renderUnitSearchable(classValue, displayLabel, unitsCache[classValue]);
   } catch(e) {
     document.getElementById('unit-loading').style.display = 'none';
     document.getElementById('unit-manual-wrap').classList.add('show');
@@ -443,45 +571,72 @@ async function onPrefixChange(classValue, displayLabel) {
   }
 }
 
-function renderUnitDropdown(classValue, displayLabel, units) {
+let currentUnitData = [];
+
+function renderUnitSearchable(classValue, displayLabel, units) {
   document.getElementById('unit-loading').style.display = 'none';
-  const sel = document.getElementById('unit-select');
-  sel.innerHTML = '<option value="">— Pilih No Unit —</option>';
+  currentUnitData = units;
 
   if (units.length === 0) {
     document.getElementById('unit-manual-wrap').classList.add('show');
     document.getElementById('no-unit-manual').placeholder = 'Nomor unit...';
     document.getElementById('no-unit-manual').oninput = updateNoUnitManual;
     document.querySelector('.unit-manual-toggle').style.display = 'none';
-  } else {
-    units.forEach(u => {
-      const opt = document.createElement('option');
-      opt.value = JSON.stringify({ code: u.code, manufacture: u.manufacture });
-      opt.textContent = u.code;
-      sel.appendChild(opt);
-    });
-    document.getElementById('unit-dropdown-wrap').style.display = 'block';
-    document.querySelector('.unit-manual-toggle').style.display = 'inline-block';
-  }
-}
-
-function onUnitSelect() {
-  const raw = document.getElementById('unit-select').value;
-  const badge = document.getElementById('manufacture-badge');
-  if (!raw) {
-    document.getElementById('no-unit').value = '';
-    document.getElementById('manufacture').value = '';
-    badge.classList.remove('show');
     return;
   }
-  const data = JSON.parse(raw);
-  document.getElementById('no-unit').value = data.code;
-  document.getElementById('manufacture').value = data.manufacture;
-  if (data.manufacture) {
-    badge.textContent = '🏭 ' + data.manufacture;
-    badge.classList.add('show');
+
+  document.getElementById('unit-search-wrap').style.display = 'block';
+  document.querySelector('.unit-manual-toggle').style.display = 'inline-block';
+  renderUnitList('');
+}
+
+function renderUnitList(keyword) {
+  const list = document.getElementById('unit-list');
+  list.innerHTML = '';
+  const filtered = keyword
+    ? currentUnitData.filter(u => u.code.toLowerCase().includes(keyword.toLowerCase()))
+    : currentUnitData;
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="search-empty">Tidak ditemukan</div>';
+    return;
+  }
+
+  filtered.forEach(u => {
+    const div = document.createElement('div');
+    div.className = 'search-item';
+    if (keyword) {
+      const regex = new RegExp(`(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+      div.innerHTML = u.code.replace(regex, '<mark>$1</mark>');
+    } else {
+      div.textContent = u.code;
+    }
+    div.onclick = () => selectUnit(u);
+    list.appendChild(div);
+  });
+}
+
+function filterUnitDropdown() {
+  const keyword = document.getElementById('unit-search').value.trim();
+  document.getElementById('unit-list').classList.add('show');
+  renderUnitList(keyword);
+}
+
+function showUnitDropdown() {
+  document.getElementById('unit-list').classList.add('show');
+  renderUnitList(document.getElementById('unit-search').value.trim());
+}
+
+function selectUnit(u) {
+  document.getElementById('unit-search').value = u.code;
+  document.getElementById('no-unit').value      = u.code;
+  document.getElementById('manufacture').value  = u.manufacture;
+  document.getElementById('unit-list').classList.remove('show');
+  if (u.manufacture) {
+    document.getElementById('manufacture-badge').textContent = '🏭 ' + u.manufacture;
+    document.getElementById('manufacture-badge').classList.add('show');
   } else {
-    badge.classList.remove('show');
+    document.getElementById('manufacture-badge').classList.remove('show');
   }
 }
 
@@ -889,12 +1044,20 @@ function resetForm() {
   document.getElementById('nama-penerima').value = '';
   document.querySelectorAll('input[name="prefix"]').forEach(r => r.checked = false);
   document.getElementById('unit-input-area').style.display = 'none';
-  document.getElementById('unit-select').innerHTML = '<option value="">— Pilih No Unit —</option>';
   document.getElementById('unit-manual-wrap').classList.remove('show');
+  document.getElementById('unit-search').value = '';
   document.getElementById('no-unit-manual').value = '';
   document.getElementById('no-unit').value = '';
   document.getElementById('manufacture').value = '';
   document.getElementById('manufacture-badge').classList.remove('show');
+  // Reset dept
+  document.getElementById('dept-wrap').style.display = 'none';
+  document.getElementById('dept-search').value = '';
+  document.getElementById('dept-manufacture-badge').style.display = 'none';
+  document.getElementById('bu-wrap').style.display = 'none';
+  document.getElementById('bu-search').value = '';
+  document.getElementById('bu-value').value = '';
+  // Reset warehouse
   document.querySelectorAll('input[name="warehouse"]').forEach(r => r.checked = false);
   document.getElementById('sub-krishna').classList.remove('show');
   document.getElementById('sub-yudistira').classList.remove('show');
